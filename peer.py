@@ -10,7 +10,7 @@ class Peer():
         self.__peerName__ = name
         self.fileChunksSaved = None
         self.peerSocket = None
-        self.network = None
+        self.network = None  # still debating
 
     def connect(self, host="127.0.0.1", port=5000):
         self.peerSocket = socket(AF_INET, SOCK_STREAM)
@@ -57,7 +57,7 @@ class Peer():
         pass
 
     @property
-    def id(self):
+    def id(self):  # use this to directly return a property instead of creating a getter function
         return self.__peerID__
 
     @property

@@ -24,7 +24,7 @@ class Tracker():
             connection, addr = self.trackerSocket.accept()
             print(f"Client connected IP < {addr} >")
             t = threading.Thread(target=self.sendFile,
-                                 args=("sendingThread", connection))
+                                 args=("sendingThread", connection))  # runs send file for each connection
             t.start()
         self.trackerSocket.close()
 
