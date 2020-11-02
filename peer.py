@@ -1,6 +1,7 @@
 from socket import *
 import os
 
+
 class Peer():
     peerCounter = 0
 
@@ -8,10 +9,9 @@ class Peer():
         self.__peerName__ = name
         self.fileChunksSaved = None
         self.peerSocket = None
-        self.network = None  # still 
         self.connect()
         self.peerSocket.send(f"NEW {self.__peerName__}".encode())
-        self.__peerID__ =self.peerSocket.recv(1024).decode()
+        self.__peerID__ = self.peerSocket.recv(1024).decode()
         self.peerSocket.close()
 
     def connect(self, host="127.0.0.1", port=5000):
@@ -31,22 +31,23 @@ class Peer():
 
                 if message.upper() == "Y":
                     self.peerSocket.send("OK".encode())
-                    dir=f"Client_downloads/{self.__peerName__}"
-                    if os.path.isdir(dir)==False:
+
+                    dir = f"Client_downloads/{self.__peerName__}"
+                    if os.path.isdir(dir) == False:
                         os.mkdir(dir)
-                    f = open(f"{dir}/new_{fileName}", "wb")
+
+                    newFile = open(f"{dir}/new_{fileName}", "wb")
                     data = self.peerSocket.recv(1024)
 
                     totalReceived = len(data)
-                    f.write(data)
+                    newFile.write(data)
                     while totalReceived < filesize:  # in case the file is bigger than 1024 bytes, we keep checking if the total recieved is equal to the actual file size
                         data = self.peerSocket.recv(1024)
 
                         totalReceived += len(data)
-                        f.write(data)
-                        # print("{0:.2f").format(
-                        #     (totalReceived / float(filesize) * 100) + "%Done")
-                    f.close()
+                        newFile.write(data)
+
+                    newFile.close()
                     print("Download Complete")
 
             else:
