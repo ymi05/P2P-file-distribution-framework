@@ -24,7 +24,7 @@ class Tracker():
         while True:
             connection, addr = self.trackerSocket.accept()
             print(f"Client connected IP < {addr} >")  
-            t = threading.Thread(target=self.clientArrival,
+            t = threading.Thread(target=self.handleClientArrival,
                                      args=("sendingThread", connection))  # runs send file for each connection
             t.start()
         self.trackerSocket.close()
@@ -36,10 +36,10 @@ class Tracker():
     def sendManifestFile(self, volunteerID):
         pass
 
-    def clientArrival(self, name, connection):
+    def handleClientArrival(self, name, connection):
         resp=connection.recv(1024).decode()
         if(resp[:3]=="NEW"):
-            self.peerArray.append(resp[4:])
+            self.peerArray.append(connection)
             connection.send(f"{(len(self.peerArray)-1)}".encode())  
         else:
             self.sendFile(self, connection, resp)
