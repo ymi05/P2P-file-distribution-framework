@@ -3,7 +3,7 @@ from peer import Peer
 
 def Main():
     name = input("Enter your name please: ")
-    newPeer = Peer(name)
+    newPeer = Peer(name, allowConnection=True)
     print(f"Hello {newPeer.name}! Your ID is {newPeer.id}")
     newPeer.connect()
     print("You are now connected to the server!")

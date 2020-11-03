@@ -10,7 +10,6 @@ class Tracker(Server):
         Tracker.trackerCounter += 1
         self.peerArray = []
         self.manifestFile = None
-        self.trackerSocket = None
         self.newConnectionsHandler = self.handleNewPeerArrival
 
     def handleNewPeerArrival(self, name, connection):

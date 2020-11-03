@@ -6,29 +6,30 @@ from server import Server
 class Peer(Server):
     peerCounter = 0
 
-    def __init__(self, name):
+    def __init__(self, name, allowConnection=False, *, portNumber=None):
         self.__peerName__ = name
         self.fileChunksSaved = None
-        self.peerSocket = None
 
-        self.__peerID__ = self.getIDFromServer()
+        self.__portNumber__ = portNumber
+        # incase we want to store peer data at the tracker without having to connect each time
+        self.__peerID__ = self.getIDFromServer() if allowConnection else -1
 
     def getIDFromServer(self) -> int:
         self.connect()
-        self.peerSocket.send(f"NEW {self.__peerName__}".encode())
-        peerID = self.peerSocket.recv(1024).decode()
-        self.peerSocket.close()
+        self.__socket__.send(f"NEW {self.__peerName__}".encode())
+        peerID = self.__socket__.recv(1024).decode()
+        self.__socket__.close()
         return peerID
 
     def connect(self, host="127.0.0.1", port=5000):
-        self.peerSocket = socket(AF_INET, SOCK_STREAM)
-        self.peerSocket.connect((host, port))
+        self.__socket__ = socket(AF_INET, SOCK_STREAM)
+        self.__socket__.connect((host, port))
 
     def requestFile(self, fileName):
 
         if fileName != "q":  # to quit
-            self.peerSocket.send(fileName.encode())
-            data = self.peerSocket.recv(1024).decode()
+            self.__socket__.send(fileName.encode())
+            data = self.__socket__.recv(1024).decode()
 
             if data[:6] == "EXISTS":  # server tells us if the file exists and sedns the size
                 filesize = int(data[6:])
@@ -36,19 +37,19 @@ class Peer(Server):
                     f"File Exists , {filesize} Bytes. Download?(Y/N)")
 
                 if message.upper() == "Y":
-                    self.peerSocket.send("OK".encode())
+                    self.__socket__.send("OK".encode())
 
                     dir = f"Client_downloads/{self.__peerName__}"
                     if os.path.isdir(dir) == False:
                         os.mkdir(dir)
 
                     newFile = open(f"{dir}/new_{fileName}", "wb")
-                    data = self.peerSocket.recv(1024)
+                    data = self.__socket__.recv(1024)
 
                     totalReceived = len(data)
                     newFile.write(data)
                     while totalReceived < filesize:  # in case the file is bigger than 1024 bytes, we keep checking if the total recieved is equal to the actual file size
-                        data = self.peerSocket.recv(1024)
+                        data = self.__socket__.recv(1024)
 
                         totalReceived += len(data)
                         newFile.write(data)

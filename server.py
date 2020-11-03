@@ -24,16 +24,12 @@ class Server():
             connection, addr = self.__socket__.accept()
             print(f"Client connected IP < {addr} >")
 
-            t = threading.Thread(target=self.newConnectionsHandler,
+            t = threading.Thread(target=self.newConnectionsHandler,  # this depends on what each of the inherited class will use
                                  args=("sendingThread", connection))  # runs send file for each connection
 
             t.start()
 
-        self.trackerSocket.close()
-
-    @staticmethod
-    def fileExists(fileName) -> bool:
-        return os.path.isfile(f"./Server_files/{fileName}")
+        self.__socket__.close()
 
     def sendFile(self, name, connection, fileName):
         if Server.fileExists(fileName):
@@ -54,6 +50,10 @@ class Server():
             connection.send("ERR".encode())
 
         connection.close()
+
+    @staticmethod
+    def fileExists(fileName) -> bool:
+        return os.path.isfile(f"./Server_files/{fileName}")
 
     @property
     def portNumber(self):
