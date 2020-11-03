@@ -4,31 +4,40 @@ from server import Server
 
 
 class Peer(Server):
-    peerCounter = 0
-
-    def __init__(self, name, allowConnection=False, *, portNumber=None):
+    def __init__(self, name, *, portNumber=None, allowConnection=False):
+        super().__init__(5001)
         self.__peerName__ = name
-        self.fileChunksSaved = None
 
-        self.__portNumber__ = portNumber
         # incase we want to store peer data at the tracker without having to connect each time
-        self.__peerID__ = self.getIDFromServer() if allowConnection else -1
+        self.__peerID__ = None
+        self.fileChunksSaved = None
+        self.newPeer = True
 
-    def getIDFromServer(self) -> int:
-        self.connect()
-        self.__socket__.send(f"NEW {self.__peerName__}".encode())
-        peerID = self.__socket__.recv(1024).decode()
+    def setIDFromServer(self):
+        # get the port number of the socket and assign it to this peer
+        self.__portNumber__ = self.__socket__.getsockname()[1]
+        self.__socket__.send(
+            f"NEW {self.__peerName__}:{self.__portNumber__}".encode())  # send the port number along with the name
+        self.__peerID__ = self.__socket__.recv(
+            1024).decode()  # get your ID from the tracker
+        self.newPeer = False
         self.__socket__.close()
-        return peerID
 
     def connect(self, host="127.0.0.1", port=5000):
-        self.__socket__ = socket(AF_INET, SOCK_STREAM)
-        self.__socket__.connect((host, port))
+
+        if(self.newPeer):
+            self.__socket__ = socket(AF_INET, SOCK_STREAM)
+            self.__socket__.connect((host, port))
+            self.setIDFromServer()
+
+        if(not self.newPeer):
+            self.__socket__ = socket(AF_INET, SOCK_STREAM)
+            self.__socket__.connect((host, port))
 
     def requestFile(self, fileName):
 
         if fileName != "q":  # to quit
-            self.__socket__.send(fileName.encode())
+            self.__socket__.send(f"REQ {fileName}".encode())
             data = self.__socket__.recv(1024).decode()
 
             if data[:6] == "EXISTS":  # server tells us if the file exists and sedns the size

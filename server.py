@@ -3,7 +3,7 @@ import threading
 import os
 
 
-class Server():
+class Server:
 
     def __init__(self, portNumber):
         self.__portNumber__ = portNumber
@@ -58,3 +58,7 @@ class Server():
     @property
     def portNumber(self):
         return self.__portNumber__
+
+    @property
+    def socket(self):
+        return self.__socket__

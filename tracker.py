@@ -1,4 +1,5 @@
 from server import Server
+from peer import Peer
 
 
 class Tracker(Server):
@@ -8,25 +9,32 @@ class Tracker(Server):
         super().__init__(5000)
         self.trackerID = Tracker.trackerCounter
         Tracker.trackerCounter += 1
-        self.peerArray = []
+        self.connectedPeers = {}
         self.manifestFile = None
-        self.newConnectionsHandler = self.handleNewPeerArrival
+        self.newConnectionsHandler = self.handlePeerArrival
 
-    def handleNewPeerArrival(self, name, connection):
-        resp = connection.recv(1024).decode()
-        if(resp[:3] == "NEW"):
-            self.peerArray.append(connection)
-            connection.send(f"{(len(self.peerArray)-1)}".encode())
-        else:
-            self.sendFile(self, connection, resp)
+    def handlePeerArrival(self, name, connection):
+        request = connection.recv(1024)
+        request = request.decode()
+        print(request)
+        if(request[:3] == "NEW"):  # NEW code is for new peers connecting to the server
+            peerID = (len(self.connectedPeers))
+            connection.send(f"{peerID}".encode())
+            information = request[8:].split(":")
+            # we save the information of the new peer and store a Peer object inside the dirctionary
+            self.connectedPeers[peerID] = Peer(str(information[0]),
+                                               portNumber=int(information[1]))
 
-    def sendManifestFile(self, volunteerID):
+        elif(request[:3] == "REQ"):  # REQ command is for requesting a file
+            self.sendFile(self, connection, request[4:])
+
+    def sendManifestFile(self, volunteerAddress):
         pass
 
     def deleteFile(self, fileName):
         pass
 
-    def sendChunksToVolunteer(self, data):
+    def sendChunksToVolunteer(self, volunteerAddress, data):
         pass
 
 
