@@ -1,8 +1,9 @@
 from socket import *
 import os
+from server import Server
 
 
-class Peer():
+class Peer(Server):
     peerCounter = 0
 
     def __init__(self, name):
