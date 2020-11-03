@@ -8,6 +8,7 @@ class Server():
     def __init__(self, portNumber):
         self.__portNumber__ = portNumber
         self.__socket__ = None
+        # each server can handle new connections differently, so we assign the function based on the class
         self.newConnectionsHandler = None
 
     def startListening(self, host="127.0.0.1"):
