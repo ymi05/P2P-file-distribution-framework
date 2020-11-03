@@ -9,10 +9,15 @@ class Peer():
         self.__peerName__ = name
         self.fileChunksSaved = None
         self.peerSocket = None
+
+        self.__peerID__ = self.getIDFromServer()
+
+    def getIDFromServer(self) -> int:
         self.connect()
         self.peerSocket.send(f"NEW {self.__peerName__}".encode())
-        self.__peerID__ = self.peerSocket.recv(1024).decode()
+        peerID = self.peerSocket.recv(1024).decode()
         self.peerSocket.close()
+        return peerID
 
     def connect(self, host="127.0.0.1", port=5000):
         self.peerSocket = socket(AF_INET, SOCK_STREAM)
