@@ -10,7 +10,6 @@ class Tracker(Server):
         self.trackerID = Tracker.trackerCounter
         Tracker.trackerCounter += 1
         self.connectedPeers = {}
-        self.manifestFile = None
         self.newConnectionsHandler = self.handlePeerArrival
 
     def handlePeerArrival(self, name, connection):
@@ -33,8 +32,21 @@ class Tracker(Server):
 
    
 
-    def sendCunkToVolunteer(self, volunteerAddress, data):
-        pass
+    def sendCunkToVolunteer(self, peerObj, fileName):
+
+        self.establishTCPConnection(peerObj.portNumber)
+        self.__socket__.send(f"SAVE {fileName}".encode())
+        peerResponse = self.__socket__.recv(1024).decode()
+        if peerResponse[:2] == "OK":
+            with open(f"DividedFiles/{fileName}", "rb") as fileChunk:
+                bytesToSend = fileChunk.read(1024)
+                self.__socket__.send(bytesToSend)
+                while bytesToSend != "":  
+                    bytesToSend = fileChunk.read(1024)
+                    self.__socket__.send(bytesToSend)
+
+        self.__socket__.close()
+
     
   
     def divideFileToChunks(self, fileName, numberOfChunks = 1):
@@ -48,12 +60,12 @@ class Tracker(Server):
             while (newChunk:= chosenFile.read(CHUNK_SIZE)) != b'': #if what we read is not empty then we assign what was read to newChunk
                 if chunkNO > numberOfChunks:
                     break
-      
-                with open(f"DividedFiles/{fileName.split('.')[0]}_chunk_{chunkNO}.{fileName.split('.')[1]}", "wb") as fileChunk:
+                fileName = f"{fileName.split('.')[0]}_chunk_{chunkNO}.{fileName.split('.')[1]}"
+                with open(f"DividedFiles/{fileName}", "wb") as fileChunk:
                     fileChunk.write(newChunk)
 
-                with open(f"DividedFiles/{fileName.split('.')[0]}_chunk_{chunkNO}.{fileName.split('.')[1]}", "rb") as fileChunk:
-                    self.sendCunkToVolunteer(self.connectedPeers[chunkNO] , fileChunk) 
+               
+                self.sendCunkToVolunteer(self.connectedPeers[chunkNO] , fileName) 
 
                 chunkNO += 1
   

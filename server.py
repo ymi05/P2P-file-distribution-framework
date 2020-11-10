@@ -33,6 +33,7 @@ class Server:
 
     def sendFile(self, name, connection, fileName):
         if Server.fileExists(fileName):
+            
             connection.send(
                 f"EXISTS {os.path.getsize(f'./Server_files/{fileName}')}".encode())
 
@@ -51,6 +52,10 @@ class Server:
 
         connection.close()
 
+    def establishTCPConnection(self , port , IPAddress = "127.0.0.1"):
+        self.__socket__ = socket(AF_INET, SOCK_STREAM)
+        self.__socket__.connect((IPAddress, port))
+        
     @staticmethod
     def fileExists(fileName) -> bool:
         return os.path.isfile(f"./Server_files/{fileName}")

@@ -26,13 +26,11 @@ class Peer(Server):
     def connect(self, host="127.0.0.1", port=5000):
 
         if(self.newPeer):
-            self.__socket__ = socket(AF_INET, SOCK_STREAM)
-            self.__socket__.connect((host, port))
+            self.establishTCPConnection(port)
             self.setIDFromServer()
 
         if(not self.newPeer):
-            self.__socket__ = socket(AF_INET, SOCK_STREAM)
-            self.__socket__.connect((host, port))
+            self.establishTCPConnection(port)
 
     def requestFile(self, fileName):
 
