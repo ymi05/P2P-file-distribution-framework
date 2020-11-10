@@ -78,6 +78,20 @@ class Peer(Server):
     def joinNetwork(self):
         pass
 
+    @staticmethod
+    def mergeFiles(requestFileName):
+
+        fileList = os.listdir('./DividedFiles/')
+        fileList = list(filter(lambda file: file.startswith(f"{requestFileName.split('.')[0]}_chunk_"), fileList))
+        fileList.sort(key = len)
+        print(fileList)
+
+        for file in fileList:
+            with open(requestFileName, 'ab') as total_file:
+                with open(f"DividedFiles/{file}", 'rb') as chunk_file:
+                    for line in chunk_file:
+                        total_file.write(line)
+    
     @property
     def id(self):  # use this to directly return a property instead of creating a getter function
         return self.__peerID__
