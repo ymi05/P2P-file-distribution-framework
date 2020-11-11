@@ -44,7 +44,7 @@ class Server:
                 with open(f'./{filePath}', 'rb') as f:
                     bytesToSend = f.read(1024)
                     connection.send(bytesToSend)
-                    while bytesToSend != "":  # since we cannot garuntee that the file size will be 1024 bytes, we keep sending until there is nothing
+                    while bytesToSend != b'':  # since we cannot garuntee that the file size will be 1024 bytes, we keep sending until there is nothing
                         bytesToSend = f.read(1024)
                         connection.send(bytesToSend)
 

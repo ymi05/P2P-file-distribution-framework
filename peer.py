@@ -4,8 +4,8 @@ from server import Server
 
 
 class Peer(Server):
-    def __init__(self, name, *, portNumber=None, allowConnection=False):
-        super().__init__(5001)
+    def __init__(self, name, *, portNumber=5001, allowConnection=False):
+        super().__init__(portNumber)
         self.__peerName__ = name
 
         # incase we want to store peer data at the tracker without having to connect each time
@@ -21,15 +21,15 @@ class Peer(Server):
         if(request[:3] == "NEW"):  # NEW command is for new peers connecting to the server
             peerID = (len(self.connectedPeers)+1)
             connection.send(f"{peerID}".encode())
-            information = request[8:].split(":")
+            information = request[5:].split(":")
             # we save the information of the new peer and store a Peer object inside the dirctionary
             self.connectedPeers[peerID] = Peer(str(information[0]),
                                                portNumber=int(information[1]))
 
         elif(request[:4] == "SAVE"):  # REQ command is for requesting a file
-            information = request.split("_")
+            information = request.split("|")
             fileSize = int(information[1])
-            fileName = information[2]+information[3]
+            fileName = information[2]
             self.saveChunk(fileName,fileSize , connection)
 
     def setIDFromServer(self):
@@ -133,9 +133,11 @@ class Peer(Server):
     def name(self):
         return self.__peerName__
 
+    
+
 
 def Main():
-    server = Peer("Youssef")
+    server = Peer(input("Enter Your Name: ") , portNumber=5003)
     server.runServer()
     
 
