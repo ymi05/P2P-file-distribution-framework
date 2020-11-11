@@ -25,17 +25,17 @@ class Tracker(Server):
                                                portNumber=int(information[1]))
 
         elif(request[:3] == "REQ"):  # REQ command is for requesting a file
-            self.sendFile(self, connection, request[4:])
+            self.sendFile(self, connection, f"./Server_files/{request[4:]}")
 
     def sendManifestFile(self, volunteerAddress):
         pass
 
    
 
-    def sendCunkToVolunteer(self, peerObj, fileName):
+    def sendCunkToVolunteer(self, portNo, fileName):
 
-        self.establishTCPConnection(peerObj.portNumber)
-        self.__socket__.send(f"SAVE {fileName}".encode())
+        self.establishTCPConnection(portNo)
+        self.__socket__.send(f"SAVE_{os.path.getsize(f'./DividedFiles/{fileName}')}_{fileName}".encode())
         peerResponse = self.__socket__.recv(1024).decode()
         if peerResponse[:2] == "OK":
             with open(f"DividedFiles/{fileName}", "rb") as fileChunk:
@@ -60,12 +60,13 @@ class Tracker(Server):
             while (newChunk:= chosenFile.read(CHUNK_SIZE)) != b'': #if what we read is not empty then we assign what was read to newChunk
                 if chunkNO > numberOfChunks:
                     break
-                fileName = f"{fileName.split('.')[0]}_chunk_{chunkNO}.{fileName.split('.')[1]}"
+                fileName = f"{fileName.split('.')[0]}_chunk{chunkNO}.{fileName.split('.')[1]}"
                 with open(f"DividedFiles/{fileName}", "wb") as fileChunk:
                     fileChunk.write(newChunk)
 
                
-                self.sendCunkToVolunteer(self.connectedPeers[chunkNO] , fileName) 
+                # self.sendCunkToVolunteer(self.connectedPeers[chunkNO] , fileName) 
+                self.sendCunkToVolunteer(5001, fileName) 
 
                 chunkNO += 1
   
@@ -77,7 +78,9 @@ class Tracker(Server):
 
 def Main():
     server = Tracker()
-    server.runServer()
+    # server.runServer()
+    trackerObj = Tracker()
+    trackerObj.divideFileToChunks("app.txt")
 
 
 if __name__ == "__main__":

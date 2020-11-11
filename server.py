@@ -18,7 +18,7 @@ class Server:
 
     def runServer(self):
         self.startListening()
-        print("Server started.")
+        print(f"Server started. @ port: {self.__portNumber__}")
         while True:
 
             connection, addr = self.__socket__.accept()
@@ -28,19 +28,20 @@ class Server:
                                  args=("sendingThread", connection))  # runs send file for each connection
 
             t.start()
+            
 
         self.__socket__.close()
 
-    def sendFile(self, name, connection, fileName):
-        if Server.fileExists(fileName):
+    def sendFile(self, name, connection, filePath):
+        if Server.fileExists(filePath):
             
             connection.send(
-                f"EXISTS {os.path.getsize(f'./Server_files/{fileName}')}".encode())
+                f"EXISTS {os.path.getsize(f'./{filePath}')}".encode())
 
             userResponse = connection.recv(1024).decode()
             if userResponse[:2] == "OK":
                 # we read the file as bytes
-                with open(f'./Server_files/{fileName}', 'rb') as f:
+                with open(f'./{filePath}', 'rb') as f:
                     bytesToSend = f.read(1024)
                     connection.send(bytesToSend)
                     while bytesToSend != "":  # since we cannot garuntee that the file size will be 1024 bytes, we keep sending until there is nothing
@@ -57,8 +58,8 @@ class Server:
         self.__socket__.connect((IPAddress, port))
         
     @staticmethod
-    def fileExists(fileName) -> bool:
-        return os.path.isfile(f"./Server_files/{fileName}")
+    def fileExists(filePath) -> bool:
+        return os.path.isfile(f"./{filePath}")
 
     @property
     def portNumber(self):

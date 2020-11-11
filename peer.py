@@ -12,6 +12,25 @@ class Peer(Server):
         self.__peerID__ = None
         self.fileChunksSaved = None
         self.newPeer = True
+        self.newConnectionsHandler = self.handleConnection
+
+    def handleConnection(self , name , connection):
+        request = connection.recv(1024)
+        request = request.decode()
+        print(request)
+        if(request[:3] == "NEW"):  # NEW command is for new peers connecting to the server
+            peerID = (len(self.connectedPeers)+1)
+            connection.send(f"{peerID}".encode())
+            information = request[8:].split(":")
+            # we save the information of the new peer and store a Peer object inside the dirctionary
+            self.connectedPeers[peerID] = Peer(str(information[0]),
+                                               portNumber=int(information[1]))
+
+        elif(request[:4] == "SAVE"):  # REQ command is for requesting a file
+            information = request.split("_")
+            fileSize = int(information[1])
+            fileName = information[2]+information[3]
+            self.saveChunk(fileName,fileSize , connection)
 
     def setIDFromServer(self):
         # get the port number of the socket and assign it to this peer
@@ -70,8 +89,24 @@ class Peer(Server):
     def sendChunks(self, requestedFileChunks):
         pass
 
-    def leaveNetwork(self):
-        pass
+    def saveChunk(self , fileName , fileSize, connection):
+        connection.send("OK".encode())
+        dir = f"Peers/{self.__peerName__}/Chunks"
+        if not os.path.exists(dir):
+      
+            os.makedirs(f"./{dir}")
+
+        with open(f"{dir}/{fileName}", "wb") as newChunk:
+
+            data = connection.recv(1024)
+
+            totalReceived = len(data)
+            newChunk.write(data)
+            while totalReceived < fileSize:  # in case the file is bigger than 1024 bytes, we keep checking if the total recieved is equal to the actual file size
+                data = connection.recv(1024)
+
+                totalReceived += len(data)
+                newChunk.write(data) 
 
     def joinNetwork(self):
         pass
@@ -97,3 +132,13 @@ class Peer(Server):
     @property
     def name(self):
         return self.__peerName__
+
+
+def Main():
+    server = Peer("Youssef")
+    server.runServer()
+    
+
+
+if __name__ == "__main__":
+    Main()
