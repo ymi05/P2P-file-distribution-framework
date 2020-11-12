@@ -11,7 +11,7 @@ class Tracker(Server):
         Tracker.trackerCounter += 1
         self.connectedPeers = {}
         self.newConnectionsHandler = self.handlePeerArrival
-        self.filesLimit = 3
+        self.fileLimit = 3
 
     def handlePeerArrival(self, name, connection):
         request = connection.recv(1024)
@@ -104,7 +104,7 @@ class Tracker(Server):
 
         with open(f"Server_files/{fileName}" , "wb") as newFile:
             fileList = os.listdir('./Server_files')
-            if(len(fileList) >= self.filesLimit):
+            if(len(fileList) >= self.fileLimit):
                 self.deleteFile(random.choice(fileList))
             newFile.write(newData)
             

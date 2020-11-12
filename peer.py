@@ -10,7 +10,6 @@ class Peer(Server):
 
         # incase we want to store peer data at the tracker without having to connect each time
         self.__peerID__ = None
-        self.fileChunksSaved = None
         self.newPeer = True
         self.newConnectionsHandler = self.handleConnection
 
@@ -65,9 +64,9 @@ class Peer(Server):
                 if message.upper() == "Y":
                     self.__socket__.send("OK".encode())
 
-                    dir = f"Client_downloads/{self.__peerName__}"
-                    if os.path.isdir(dir) == False:
-                        os.mkdir(dir)
+                    dir = f"Peers/{self.__peerName__}/Downloads"
+                    if not os.path.exists(dir):
+                        os.makedirs(f"./{dir}")
 
                     newFile = open(f"{dir}/new_{fileName}", "wb")
                     data = self.__socket__.recv(1024)
