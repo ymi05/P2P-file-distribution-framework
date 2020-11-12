@@ -10,7 +10,7 @@ def Main():
     print(f"Hello {newPeer.name}! Your ID is {newPeer.id}")
     filename = input("Please enter the filename: ")
     newPeer.requestFile(filename)
-    newPeer.runServer()
+    # newPeer.runServer()
 
 
 if __name__ == "__main__":

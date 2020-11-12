@@ -34,10 +34,13 @@ class Peer(Server):
     def setIDFromServer(self):
         # get the port number of the socket and assign it to this peer
         self.__portNumber__ = self.__socket__.getsockname()[1]
+
+        
         self.__socket__.send(
             f"NEW {self.__peerName__}:{self.__portNumber__}".encode())  # send the port number along with the name
-        self.__peerID__ = self.__socket__.recv(
-            1024).decode()  # get your ID from the tracker
+      
+        self.__peerID__ = self.__socket__.recv(1024).decode()  # get your ID from the tracker
+        
         self.newPeer = False
         self.__socket__.close()
 
@@ -58,8 +61,7 @@ class Peer(Server):
 
             if data[:6] == "EXISTS":  # server tells us if the file exists and sedns the size
                 filesize = int(data[6:])
-                message = input(
-                    f"File Exists , {filesize} Bytes. Download?(Y/N)")
+                message = input(f"File Exists , {filesize} Bytes. Download?(Y/N):\t")
 
                 if message.upper() == "Y":
                     self.__socket__.send("OK".encode())
@@ -80,7 +82,7 @@ class Peer(Server):
                         newFile.write(data)
 
                     newFile.close()
-                    print("Download Complete")
+                    print("Download Complete!")
 
             else:
                 print("File does not exist!")
@@ -119,7 +121,7 @@ class Peer(Server):
         print(fileList)
 
         for file in fileList:
-            with open(requestFileName, 'ab') as total_file:
+            with open(requestFileName, 'ab') as total_file: 
                 with open(f"DividedFiles/{file}", 'rb') as chunk_file:
                     for line in chunk_file:
                         total_file.write(line)

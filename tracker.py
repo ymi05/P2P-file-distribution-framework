@@ -53,19 +53,20 @@ class Tracker(Server):
   
     def divideFileToChunks(self, fileName, numberOfChunks = 2):
         #the division could lead to a float , but we the file can read # bytes that are integers.
-        self.connectedPeers = {"1":Peer("Youssef" , portNumber=5003) , "2":Peer("Adam" , portNumber=5002)}
+        self.connectedPeers = {"1":Peer("Youssef" , portNumber=5003) , "2":Peer("Adam" , portNumber=5002)} #hardcoded values
+        
         if len(self.connectedPeers) < numberOfChunks:
             numberOfChunks = len(self.connectedPeers)
 
         CHUNK_SIZE = math.ceil(os.path.getsize(
-            f"Server_files/{fileName}") / numberOfChunks)     # We take the cieling of the divison result and no the floor to avoid losing data
+            f"Server_files/{fileName}") / numberOfChunks)     # We take the cieling of the divison result and not the floor to avoid losing data
 
         chunkNO = 1
         with open(f"Server_files/{fileName}", "rb") as chosenFile:
             chosenPeersIDs = [] #used to keep track of the selected peers to avoid sending to the same peer more than once
             newFileName = fileName.split('.')[0]
             while (newChunk:= chosenFile.read(CHUNK_SIZE)) != b'': #if what we read is not empty then we assign what was read to newChunk
-                if chunkNO > numberOfChunks:
+                if chunkNO > numberOfChunks: #in case things go bad
                     break
 
                 
@@ -112,12 +113,12 @@ class Tracker(Server):
 
 def Main():
     server = Tracker()
-    # server.runServer()
-    trackerObj = Tracker()
-    # trackerObj.deleteFile("app.txt")
-    fileList = os.listdir('./random_files')
-    for file in fileList:
-        trackerObj.addFile(f"./random_files/{file}")
+    server.runServer()
+    # trackerObj = Tracker()
+    # # trackerObj.deleteFile("app.txt")
+    # fileList = os.listdir('./random_files')
+    # for file in fileList:
+    #     trackerObj.addFile(f"./random_files/{file}")
 
 
 if __name__ == "__main__":
