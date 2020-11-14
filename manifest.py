@@ -1,5 +1,5 @@
 from md5_handler import convert_to_md5
-import json
+import json , os
 
 
 class ManifestFile:
@@ -12,6 +12,7 @@ class ManifestFile:
         self.data["md5Checksum"]= convert_to_md5(self.fileName)
 
     def addChunkDetails(self , chunkID , IP_Address , portNo):
+        self.fileName = self.fileName.split("/")[-1]
         self.data["chunks"].append({
                     'name': self.fileName.split(".")[0]+"_chunk"+str(chunkID)+"."+self.fileName.split(".")[1],
                     'id':chunkID,
@@ -19,6 +20,11 @@ class ManifestFile:
                     'port': int(portNo)
                 })
 
-    def saveAsFile(self ):
-        with open('Manifest_'+self.fileName+'.json','w') as manifest:
-		    manifest.write(json.dumps(self.data, indent=4))
+    def saveAsFile(self):
+        dir = "Manifests"
+        if not os.path.exists(dir):
+            os.makedirs(f"./{dir}")    
+        
+        with open(f"{dir}/{self.fileName}_manifest.json",'w') as manifest:
+		        manifest.write(json.dumps(self.data,  indent=4))
+       

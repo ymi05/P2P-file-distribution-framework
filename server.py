@@ -10,7 +10,7 @@ class Server:
         self.__listeningPortNumber__ = portNumber
         self.listeningSocket = None
         self.tempSocket = None
-        # each server can handle new connections differently, so we assign the function based on the class
+        # each server can handle \ connections differently, so we assign the function based on the class
         self.newConnectionsHandler = None
         self.extraOperationsHandler = None
         self.isTracker = isTracker
@@ -49,11 +49,11 @@ class Server:
     
 
     def sendFile(self, name, connection, filePath):
-        if Server.fileExists(filePath):
+        # if Server.fileExists(filePath):
 
             connection.send(
-                f"EXISTS {os.path.getsize(f'./{filePath}')}".encode())
-
+                f"EXISTS--{os.path.getsize(f'{filePath}')}--{filePath}".encode())
+         
             userResponse = connection.recv(1024).decode()
             if userResponse[:2] == "OK":
                 # we read the file as bytes
@@ -64,11 +64,7 @@ class Server:
                         bytesToSend = f.read(1024)
                         connection.send(bytesToSend)
         
-
-        else:
-            connection.send("ERR".encode())
-
-        connection.close()
+            connection.close()
 
     def establishTCPConnection(self , port , IPAddress = "127.0.0.1"):
         try:
@@ -84,7 +80,7 @@ class Server:
         
     @staticmethod
     def fileExists(filePath) -> bool:
-        return os.path.isfile(f"./{filePath}")
+        return os.path.isfile(filePath)
 
     @property
     def listeningPortNo(self):

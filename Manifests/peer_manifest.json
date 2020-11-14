@@ -1,0 +1,12 @@
+{
+    "numChunks": 1,
+    "md5Checksum": "2c3fa041ad02c16df45a518e5810d3d8",
+    "chunks": [
+        {
+            "name": "peer_chunk1.txt",
+            "id": 1,
+            "IP_Address": "127.0.0.1",
+            "port": 5003
+        }
+    ]
+}

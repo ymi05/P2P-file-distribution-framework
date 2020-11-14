@@ -1,6 +1,7 @@
 from socket import *
 import os , time
 from server import Server
+from tools.jsonFileHandler import getDataAndRequestChunks
 
 
 class Peer(Server):
@@ -32,6 +33,8 @@ class Peer(Server):
             fileSize = int(information[1])
             fileName = information[2]
             self.saveChunk(fileName,fileSize , connection)
+        elif(request [:"REQ"]):
+            pass
 
     def getIDFromServer(self):
         # get the port number of the socket and assign it to this peer
@@ -61,7 +64,17 @@ class Peer(Server):
             data = self.tempSocket.recv(1024).decode()
 
             if data[:6] == "EXISTS":  # server tells us if the file exists and sedns the size
-                filesize = int(data[6:])
+                isManifestFile = False
+                information = data.split("--")
+                filesize = int(information[1])
+                requestedFileName = fileName
+                recievedFileName = information[2].split("/")[-1]
+
+                if requestedFileName != recievedFileName:
+                    isManifestFile = True
+                    
+
+
                 message = input(f"File Exists , {filesize} Bytes. Download?(Y/N):\t")
 
                 if message.upper() == "Y":
@@ -71,7 +84,7 @@ class Peer(Server):
                     if not os.path.exists(dir):
                         os.makedirs(f"./{dir}")
 
-                    newFile = open(f"{dir}/new_{fileName}", "wb")
+                    newFile = open(f"{dir}/{recievedFileName}", "wb")
                     data = self.tempSocket.recv(1024)
 
                     totalReceived = len(data)
@@ -83,14 +96,16 @@ class Peer(Server):
                         newFile.write(data)
 
                     newFile.close()
+                    if isManifestFile:
+                        getDataAndRequestChunks(f"{dir}/{recievedFileName}" , self.requestFile())
+                      
+
                     print("Download Complete!")
 
             else:
                 print("File does not exist!")
 
-    def sendChunks(self, requestedFileChunks):
-        pass
-
+ 
     def saveChunk(self , fileName , fileSize, connection):
         connection.send("OK".encode())
         dir = f"Peers/{self.__peerName__}/Chunks"
@@ -110,8 +125,9 @@ class Peer(Server):
                 totalReceived += len(data)
                 newChunk.write(data) 
 
-    def joinNetwork(self):
-        pass
+    def requestChunks(self, manifestFileName):
+        with open(manifestFileName , "r") as manifestFile:
+            pass
 
     @staticmethod
     def mergeFiles(requestFileName):
@@ -143,7 +159,7 @@ class Peer(Server):
 
 
 def Main():
-    peer = Peer("Adam" , portNumber=5004)
+    peer = Peer("Youssef" , portNumber=5003)
     # peer.start()
     peer.start()
     

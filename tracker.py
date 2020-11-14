@@ -4,12 +4,12 @@ from manifest import ManifestFile
 import math , os , random , time 
 
 class Tracker(Server):
-    trackerCounter = 0
+
 
     def __init__(self):
         super().__init__(5000 , isTracker= True)
+
         self.trackerID = Tracker.trackerCounter
-        Tracker.trackerCounter += 1
         self.connectedPeers = {}
         self.newConnectionsHandler = self.handlePeerArrival
         self.extraOperationsHandler = self.checkForNewFiles
@@ -30,11 +30,11 @@ class Tracker(Server):
 
         elif(request[:3] == "REQ"):  # REQ command is for requesting a file
             requestedFile = request[4:]
-            if Server.fileExists(requestedFile):
-                self.sendFile(connection, f"./Server_files/{requestedFile}")
+            if Server.fileExists(f"Server_files/{requestedFile}"):
+                self.sendFile("",connection, f"./Server_files/{requestedFile}")
 
-            elif manifestExists(requestedFile):
-                self.sendManifestFile(requestedFile)
+            elif Tracker.manifestExists(requestedFile):
+                self.sendManifestFile(connection , requestedFile)
             else:
                 connection.send("ERR".encode())
             connection.close()
@@ -70,7 +70,7 @@ class Tracker(Server):
      
         # self.connectedPeers = {"1":Peer("Youssef" , portNumber=5003) , "2":Peer("Adam" , portNumber=5002)} #hardcoded values
         
-        manifestFile = ManifestFile()
+        manifestFile = ManifestFile(f"Server_files/{fileName}")
         manifestFile.prepareManifestFile(numberOfChunks)
 
         if len(self.connectedPeers) < numberOfChunks:
@@ -137,10 +137,13 @@ class Tracker(Server):
     
     @staticmethod
     def manifestExists(fileName):
-        return Server.fileExists(f"Manifests/{getManifestFileName(fileName)}")
+        return Server.fileExists(f"Manifests/{Tracker.getManifestFileName(fileName)}")
         
     def sendManifestFile(self, connection , fileName):
-        self.sendFile(connection, f"./Manifests/{getManifestFileName(fileName)}")
+        fileName = Tracker.getManifestFileName(fileName)
+        filePath =  f"Manifests/{fileName}"
+        print(filePath)
+        self.sendFile("" , connection , filePath)
 
 
 def Main():

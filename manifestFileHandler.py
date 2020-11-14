@@ -21,9 +21,9 @@ def prepareManifestfile(filename):
 			'port':x[1]
 		})
 	
-	with open('Manifest_'+filename+'.json','w') as manifest:
-		manifest.write(json.dumps(data, indent=4))
+	with open('manifest_'+filename+'.json','w') as manifest:
+			manifest.write(json.dumps(data, indent=4))
 	manifest.close()
 
 
-prepareManifestfile("md5.py")
+prepareManifestfile("runner.py")
