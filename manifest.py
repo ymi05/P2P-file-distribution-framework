@@ -24,7 +24,7 @@ class ManifestFile:
         dir = "Manifests"
         if not os.path.exists(dir):
             os.makedirs(f"./{dir}")    
-        
-        with open(f"{dir}/{self.fileName}_manifest.json",'w') as manifest:
+        fileName = self.fileName.split(".")[0]
+        with open(f"{dir}/{fileName}_manifest.json",'w') as manifest:
 		        manifest.write(json.dumps(self.data,  indent=4))
        

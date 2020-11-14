@@ -1,9 +1,9 @@
 {
     "numChunks": 1,
-    "md5Checksum": "2c3fa041ad02c16df45a518e5810d3d8",
+    "md5Checksum": "d8137e5a3f16d4891bf69080e8c1be9e",
     "chunks": [
         {
-            "name": "peer_chunk1.txt",
+            "name": "AROL_chunk1.docx",
             "id": 1,
             "IP_Address": "127.0.0.1",
             "port": 5003

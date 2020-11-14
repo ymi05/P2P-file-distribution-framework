@@ -9,7 +9,6 @@ class Tracker(Server):
     def __init__(self):
         super().__init__(5000 , isTracker= True)
 
-        self.trackerID = Tracker.trackerCounter
         self.connectedPeers = {}
         self.newConnectionsHandler = self.handlePeerArrival
         self.extraOperationsHandler = self.checkForNewFiles
