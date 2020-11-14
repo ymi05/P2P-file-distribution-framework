@@ -27,4 +27,7 @@ class ManifestFile:
         fileName = self.fileName.split(".")[0]
         with open(f"{dir}/{fileName}_manifest.json",'w') as manifest:
 		        manifest.write(json.dumps(self.data,  indent=4))
+    
+    def getMd5(self):
+        return self.data["md5Checksum"]
        

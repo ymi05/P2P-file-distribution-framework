@@ -2,6 +2,7 @@ from socket import *
 import os , time
 from server import Server
 from jsonFileHandler import getDataAndRequestChunks
+from md5_handler import *
 
 
 class Peer(Server):
@@ -100,11 +101,18 @@ class Peer(Server):
 
                     #if the file we got is a manifest file
                     if isManifestFile:
-                        getDataAndRequestChunks(self.__peerName__, recievedFileName, self.requestChunks)
+                        actual_MD5_OfFile = getDataAndRequestChunks(self.__peerName__, recievedFileName, self.requestChunks)
+
                         os.remove(f"{dir}/{recievedFileName}")
+
                         self.mergeFiles(requestedFileName)
-                      
-                    print("Download Complete!")
+                        time.sleep(1)
+                        if compare_md5(actual_MD5_OfFile , convert_to_md5(f"Peers/{self.__peerName__}/Downloads/{requestedFileName}")):
+                            print("Download Complete!")
+                        else:
+                            print("Download Failed.")
+                
+                  
 
             else:
                 print("File does not exist!")
@@ -148,6 +156,9 @@ class Peer(Server):
                     for line in chunk_file:
                         total_file.write(line)
             os.remove(f'./Peers/{self.__peerName__}/Downloads/{file}')
+      
+  
+
     
     @property
     def id(self):  # use this to directly return a property instead of creating a getter function
@@ -165,7 +176,7 @@ class Peer(Server):
 
 
 def Main():
-    peer = Peer("Youssef" , portNumber=5003)
+    peer = Peer("Adam" , portNumber=5003)
     # peer.start()
     peer.start()
     

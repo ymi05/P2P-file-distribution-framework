@@ -18,6 +18,8 @@ def getDataAndRequestChunks(peerName , manifestFileName , requestChunks):
             port = int(chunk["port"])
             fileName = chunk["name"]
             requestChunks(fileName , port)
+    return md5Checksum
+    
 
 
     
