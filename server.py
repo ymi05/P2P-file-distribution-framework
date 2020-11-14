@@ -5,7 +5,7 @@ import os , time
 
 class Server:
 
-    def __init__(self, portNumber):
+    def __init__(self, portNumber , isTracker = False):
         self.__portNumber__ = portNumber
         self.__listeningPortNumber__ = portNumber
         self.listeningSocket = None
@@ -13,6 +13,7 @@ class Server:
         # each server can handle new connections differently, so we assign the function based on the class
         self.newConnectionsHandler = None
         self.extraOperationsHandler = None
+        self.isTracker = isTracker
     
 
     def startListening(self, host="127.0.0.1"):
@@ -49,7 +50,7 @@ class Server:
 
     def sendFile(self, name, connection, filePath):
         if Server.fileExists(filePath):
-            
+
             connection.send(
                 f"EXISTS {os.path.getsize(f'./{filePath}')}".encode())
 
@@ -62,6 +63,7 @@ class Server:
                     while bytesToSend != b'':  # since we cannot garuntee that the file size will be 1024 bytes, we keep sending until there is nothing
                         bytesToSend = f.read(1024)
                         connection.send(bytesToSend)
+        
 
         else:
             connection.send("ERR".encode())

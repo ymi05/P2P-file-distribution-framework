@@ -2,6 +2,7 @@ from peer import Peer
 
 
 def Main():
+    #TODO add threading so we could request files and receive chunks at the same time
     name = input("Enter your name please: ")
     newPeer = Peer(name, portNumber= 5004,allowConnection=True)
 
@@ -11,7 +12,7 @@ def Main():
     filename = input("Please enter the filename: ")
     newPeer.requestFile(filename)
     # newPeer.runServer()
-
+    
 
 if __name__ == "__main__":
     Main()

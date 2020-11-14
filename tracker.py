@@ -1,12 +1,13 @@
 from server import Server
 from peer import Peer
-import math , os , random , time
+from manifest import ManifestFile
+import math , os , random , time 
 
 class Tracker(Server):
     trackerCounter = 0
 
     def __init__(self):
-        super().__init__(5000)
+        super().__init__(5000 , isTracker= True)
         self.trackerID = Tracker.trackerCounter
         Tracker.trackerCounter += 1
         self.connectedPeers = {}
@@ -28,11 +29,20 @@ class Tracker(Server):
                                                portNumber=int(information[1]))
 
         elif(request[:3] == "REQ"):  # REQ command is for requesting a file
-            self.sendFile(self, connection, f"./Server_files/{request[4:]}")
+            requestedFile = request[4:]
+            if Server.fileExists(requestedFile):
+                self.sendFile(connection, f"./Server_files/{requestedFile}")
+
+            elif manifestExists(requestedFile):
+                self.sendManifestFile(requestedFile)
+            else:
+                connection.send("ERR".encode())
+            connection.close()
+
         for peer in self.connectedPeers:
             print(f"Name: {self.connectedPeers[peer].name} - Port: {self.connectedPeers[peer].portNo}")
-    def sendManifestFile(self, volunteerAddress):
-        pass
+            
+
 
    
 
@@ -57,12 +67,15 @@ class Tracker(Server):
     
   
     def divideFileToChunks(self, fileName, numberOfChunks = 1):
-        #the division could lead to a float , but we the file can read # bytes that are integers.
+     
         # self.connectedPeers = {"1":Peer("Youssef" , portNumber=5003) , "2":Peer("Adam" , portNumber=5002)} #hardcoded values
+        
+        manifestFile = ManifestFile()
+        manifestFile.prepareManifestFile(numberOfChunks)
 
         if len(self.connectedPeers) < numberOfChunks:
             numberOfChunks = len(self.connectedPeers)
-
+        #the division could lead to a float , but the file can read # bytes that are integers.
         CHUNK_SIZE = math.ceil(os.path.getsize(
             f"Server_files/{fileName}") / numberOfChunks)     # We take the cieling of the divison result and not the floor to avoid losing data
 
@@ -87,10 +100,16 @@ class Tracker(Server):
                 chosenPeersIDs.append(chosenID)
              
                 self.sendCunkToVolunteer(int(self.connectedPeers[chosenID].portNo), fileName) 
-                # self.sendCunkToVolunteer(5003, fileName) 
+                
+                manifestFile.addChunkDetails(chunkNO , "127.0.0.1" , self.connectedPeers[chosenID].portNo)
                 os.remove(f"DividedFiles/{fileName}")
 
                 chunkNO += 1
+        
+            manifestFile.saveAsFile()
+        
+	        
+
   
 
 
@@ -110,6 +129,18 @@ class Tracker(Server):
             # else:
             #     time.sleep(10)
 
+    @staticmethod
+    def getManifestFileName(fileName):
+        fileName = fileName.split('.')[0]
+        manifestFileName = fileName + "_manifest.json"
+        return manifestFileName
+    
+    @staticmethod
+    def manifestExists(fileName):
+        return Server.fileExists(f"Manifests/{getManifestFileName(fileName)}")
+        
+    def sendManifestFile(self, connection , fileName):
+        self.sendFile(connection, f"./Manifests/{getManifestFileName(fileName)}")
 
 
 def Main():
