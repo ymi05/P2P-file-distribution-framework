@@ -71,7 +71,7 @@ class Server:
             newSocket = socket(AF_INET, SOCK_STREAM)
             newSocket.connect((IPAddress, port))
             print(f"Connecting to {(IPAddress, port)}")
-            time.sleep(3)
+            time.sleep(2)
             return newSocket
         except:
             print("ERROR")

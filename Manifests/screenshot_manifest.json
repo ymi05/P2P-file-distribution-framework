@@ -1,0 +1,18 @@
+{
+    "numChunks": 2,
+    "md5Checksum": "1370496b7d9c946cd26fe356edb0b189",
+    "chunks": [
+        {
+            "name": "screenshot_chunk1.PNG",
+            "id": 1,
+            "IP_Address": "127.0.0.1",
+            "port": 5003
+        },
+        {
+            "name": "screenshot_chunk2.PNG",
+            "id": 2,
+            "IP_Address": "127.0.0.1",
+            "port": 5004
+        }
+    ]
+}

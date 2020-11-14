@@ -34,7 +34,9 @@ class Peer(Server):
             fileName = information[2]
             self.saveChunk(fileName,fileSize , connection)
         elif(request [:3] == "REQ"):
-            pass
+            requestedFile = request[4:]
+            self.sendFile(name , connection , f"Peers/{self.__peerName__}/Chunks/{requestedFile}")
+            os.remove(f"Peers/{self.__peerName__}/Chunks/{requestedFile}")
 
     def getIDFromServer(self):
         # get the port number of the socket and assign it to this peer
@@ -57,7 +59,7 @@ class Peer(Server):
         if(not self.newPeer) and not justGetID:
            self.tempSocket = self.establishTCPConnection(port)
 
-    def requestFile(self, fileName):
+    def requestFile(self, fileName , requestFromPeer = False):
 
         if fileName != "q":  # to quit
             self.tempSocket.send(f"REQ {fileName}".encode())
@@ -73,12 +75,11 @@ class Peer(Server):
                 #the below indicates whether we have recieved a manifest file or not
                 if requestedFileName != recievedFileName:
                     isManifestFile = True
-                    
-
-
-                message = input(f"File Exists , {filesize} Bytes. Download?(Y/N):\t")
-
-                if message.upper() == "Y":
+                message = ""
+                if not requestFromPeer:
+                    message = input(f"File Exists , {filesize} Bytes. Download?(Y/N):\t")
+                  
+                if message.upper() == "Y" or requestFromPeer:
                     self.tempSocket.send("OK".encode())
 
                     dir = f"Peers/{self.__peerName__}/Downloads"
@@ -128,8 +129,8 @@ class Peer(Server):
                 newChunk.write(data) 
 
     def requestChunks(self, manifestFileName , port):
-        self.connect(port , justGetID = False)
-        self.requestFile(manifestFileName)
+        self.connect(port = port , justGetID = False)
+        self.requestFile(manifestFileName , requestFromPeer= True)
 
 
     @staticmethod
@@ -162,7 +163,7 @@ class Peer(Server):
 
 
 def Main():
-    peer = Peer("Adam" , portNumber=5003)
+    peer = Peer("Youssef" , portNumber=5004)
     # peer.start()
     peer.start()
     
