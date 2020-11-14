@@ -1,5 +1,7 @@
 from md5_handler import convert_to_md5
 import json
+
+
 class ManifestFile:
     def __init__(self , fileName):
         self.data = {"numChunks" : 0 , "md5Checksum" : "" , "chunks" : []} #default structure for the manifest file

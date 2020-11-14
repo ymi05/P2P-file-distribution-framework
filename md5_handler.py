@@ -8,6 +8,7 @@ def convert_to_md5(filename):
 def compare_md5(md5_merge,manifest_md5):
 	return md5_merge==manifest_md5
 
+ 
 
 # print("md5 of sample file:")
 # x=convertmd5("01. Tempestuous Temperaments.mkv")
