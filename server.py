@@ -1,36 +1,51 @@
 from socket import *
 import threading
-import os
+import os , time
 
 
 class Server:
 
     def __init__(self, portNumber):
         self.__portNumber__ = portNumber
-        self.__socket__ = None
+        self.__listeningPortNumber__ = portNumber
+        self.listeningSocket = None
+        self.tempSocket = None
         # each server can handle new connections differently, so we assign the function based on the class
         self.newConnectionsHandler = None
+        self.extraOperationsHandler = None
+    
 
     def startListening(self, host="127.0.0.1"):
-        self.__socket__ = socket(AF_INET, SOCK_STREAM)
-        self.__socket__.bind((host, self.__portNumber__))
-        self.__socket__.listen(5)
+        self.listeningSocket = socket(AF_INET, SOCK_STREAM)
+        self.listeningSocket.bind((host, self.__portNumber__))
+        self.listeningSocket.listen(5)
 
     def runServer(self):
         self.startListening()
         print(f"Server started. @ port: {self.__portNumber__}")
         while True:
 
-            connection, addr = self.__socket__.accept()
+            connection, addr = self.listeningSocket.accept()
             print(f"Client connected IP < {addr} >")
 
-            t = threading.Thread(target=self.newConnectionsHandler,  # this depends on what each of the inherited class will use
-                                 args=("sendingThread", connection))  # runs send file for each connection
 
-            t.start()
+            
+            listeningThread = threading.Thread(target=self.newConnectionsHandler,  # this depends on what each of the inherited class will use
+                                 args=("listeningThread", connection))  # runs send file for each connection
+           
+            listeningThread.start()
             
 
-        self.__socket__.close()
+        self.listeningSocket.close()
+
+    def start(self):
+        if self.extraOperationsHandler != None:
+            operationsThread = threading.Thread(target=self.extraOperationsHandler)       
+            operationsThread.start()
+        time.sleep(4)
+        runServerThread = threading.Thread(target=self.runServer)       
+        runServerThread.start()
+    
 
     def sendFile(self, name, connection, filePath):
         if Server.fileExists(filePath):
@@ -54,17 +69,25 @@ class Server:
         connection.close()
 
     def establishTCPConnection(self , port , IPAddress = "127.0.0.1"):
-        self.__socket__ = socket(AF_INET, SOCK_STREAM)
-        self.__socket__.connect((IPAddress, port))
+        try:
+            newSocket = socket(AF_INET, SOCK_STREAM)
+            newSocket.connect((IPAddress, port))
+            print(f"Connecting to {(IPAddress, port)}")
+            time.sleep(3)
+            return newSocket
+        except:
+            print("ERROR")
+            return None
+        
         
     @staticmethod
     def fileExists(filePath) -> bool:
         return os.path.isfile(f"./{filePath}")
 
     @property
-    def portNumber(self):
-        return self.__portNumber__
+    def listeningPortNo(self):
+        return self.__listeningPort__
 
     @property
-    def socket(self):
-        return self.__socket__
+    def tempPocket(self):
+        return self.tempSocket

@@ -1,6 +1,6 @@
 from server import Server
 from peer import Peer
-import math , os , random
+import math , os , random , time
 
 class Tracker(Server):
     trackerCounter = 0
@@ -11,6 +11,7 @@ class Tracker(Server):
         Tracker.trackerCounter += 1
         self.connectedPeers = {}
         self.newConnectionsHandler = self.handlePeerArrival
+        self.extraOperationsHandler = self.checkForNewFiles
         self.fileLimit = 3
 
     def handlePeerArrival(self, name, connection):
@@ -21,14 +22,15 @@ class Tracker(Server):
         if(request[:3] == "NEW"):  # NEW command is for new peers connecting to the server
             peerID = (len(self.connectedPeers)+1)
             connection.send(f"{peerID}".encode())
-            information = request[5:].split(":")
+            information = request[4:].split(":")
             # we save the information of the new peer and store a Peer object inside the dirctionary
             self.connectedPeers[peerID] = Peer(str(information[0]),
                                                portNumber=int(information[1]))
 
         elif(request[:3] == "REQ"):  # REQ command is for requesting a file
             self.sendFile(self, connection, f"./Server_files/{request[4:]}")
-
+        for peer in self.connectedPeers:
+            print(f"Name: {self.connectedPeers[peer].name} - Port: {self.connectedPeers[peer].portNo}")
     def sendManifestFile(self, volunteerAddress):
         pass
 
@@ -36,25 +38,28 @@ class Tracker(Server):
 
     def sendCunkToVolunteer(self, portNo, fileName):
 
-        self.establishTCPConnection(portNo)
-        self.__socket__.send(f"SAVE|{os.path.getsize(f'./DividedFiles/{fileName}')}|{fileName}".encode())
-        peerResponse = self.__socket__.recv(1024).decode()
-        if peerResponse[:2] == "OK":
-            with open(f"DividedFiles/{fileName}", "rb") as fileChunk:
-                bytesToSend = fileChunk.read(1024)
-                self.__socket__.send(bytesToSend)
-                while bytesToSend != b'':  
+        self.tempSocket = self.establishTCPConnection(portNo)
+        if self.tempSocket != None:
+            time.sleep(3)
+            self.tempSocket.send(f"SAVE|{os.path.getsize(f'./DividedFiles/{fileName}')}|{fileName}".encode())
+            peerResponse = self.tempSocket.recv(1024).decode()
+            if peerResponse[:2] == "OK":
+                with open(f"DividedFiles/{fileName}", "rb") as fileChunk:
                     bytesToSend = fileChunk.read(1024)
-                    self.__socket__.send(bytesToSend)
+                    self.tempSocket.send(bytesToSend)
+                    while bytesToSend != b'':  
+                        bytesToSend = fileChunk.read(1024)
+                        self.tempSocket.send(bytesToSend)
 
-        self.__socket__.close()
+            self.tempSocket.close()
+
 
     
   
-    def divideFileToChunks(self, fileName, numberOfChunks = 2):
+    def divideFileToChunks(self, fileName, numberOfChunks = 1):
         #the division could lead to a float , but we the file can read # bytes that are integers.
-        self.connectedPeers = {"1":Peer("Youssef" , portNumber=5003) , "2":Peer("Adam" , portNumber=5002)} #hardcoded values
-        
+        # self.connectedPeers = {"1":Peer("Youssef" , portNumber=5003) , "2":Peer("Adam" , portNumber=5002)} #hardcoded values
+
         if len(self.connectedPeers) < numberOfChunks:
             numberOfChunks = len(self.connectedPeers)
 
@@ -81,7 +86,8 @@ class Tracker(Server):
                     chosenID = random.choice(list(self.connectedPeers))
                 chosenPeersIDs.append(chosenID)
              
-                self.sendCunkToVolunteer(int(self.connectedPeers[chosenID].portNumber), fileName) 
+                self.sendCunkToVolunteer(int(self.connectedPeers[chosenID].portNo), fileName) 
+                # self.sendCunkToVolunteer(5003, fileName) 
                 os.remove(f"DividedFiles/{fileName}")
 
                 chunkNO += 1
@@ -91,29 +97,24 @@ class Tracker(Server):
     def deleteFile(self , fileName):
         filePath = f"Server_files/{fileName}"
         if os.path.exists(filePath):
-            self.divideFileToChunks(fileName)
+            self.divideFileToChunks(fileName , len(self.connectedPeers))
             os.remove(filePath)
     
-    def addFile(self , filePath):
-        newData = ""
-        print(filePath)
-        with open(filePath , "rb") as chosenFile:
-            newData = chosenFile.read() 
-        fileName = filePath.split("/")[2]
+   
+    def checkForNewFiles(self):
+        while True:
+            if len(self.connectedPeers) > 0:
+                fileList = os.listdir('./Server_files')
+                if(len(fileList) > self.fileLimit):
+                    self.deleteFile(random.choice(fileList))
+            # else:
+            #     time.sleep(10)
 
-
-
-        with open(f"Server_files/{fileName}" , "wb") as newFile:
-            fileList = os.listdir('./Server_files')
-            if(len(fileList) >= self.fileLimit):
-                self.deleteFile(random.choice(fileList))
-            newFile.write(newData)
-            
 
 
 def Main():
     server = Tracker()
-    server.runServer()
+    server.start()
     # trackerObj = Tracker()
     # # trackerObj.deleteFile("app.txt")
     # fileList = os.listdir('./random_files')
