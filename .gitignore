@@ -1,8 +1,5 @@
 Client_downloads
 Peers
-DividedFiles
-random_files/slidingWindow.txt
-random_files/sample.txt
 Server_files/AROL.docx
 manifestFileHandler.py
 runner.py
