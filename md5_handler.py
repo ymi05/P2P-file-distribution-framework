@@ -9,9 +9,3 @@ def compare_md5(md5_merge,manifest_md5):
 	return md5_merge == manifest_md5
 
  
-
-# print("md5 of sample file:")
-# x=convertmd5("01. Tempestuous Temperaments.mkv")
-# print(x)
-
-# print(checkmd5(x,convertmd5("full_file")))

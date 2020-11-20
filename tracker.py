@@ -80,7 +80,7 @@ class Tracker(Server):
 
         chunkNO = 1
         with open(f"Server_files/{fileName}", "rb") as chosenFile:
-            chosenPeersIDs = [] #used to keep track of the selected peers to avoid sending to the same peer more than once
+            chosenPeersIDs = { id : 0 for id in self.connectedPeers} #used to keep track of the selected peers to avoid sending to the same peer more than once
             newFileName = fileName.split('.')[0]
             while (newChunk:= chosenFile.read(CHUNK_SIZE)) != b'': #if what we read is not empty then we assign what was read to newChunk
                 if chunkNO > numberOfChunks: #in case things go bad
@@ -89,16 +89,27 @@ class Tracker(Server):
                 
                 fileExtention = fileName.split('.')[1]
                 fileName = f"{newFileName}_chunk{chunkNO}.{fileExtention}"
+
+                if not os.path.exists("DividedFiles"):
+                    os.makedirs(f"./DividedFiles")
+
                 with open(f"DividedFiles/{fileName}", "wb") as fileChunk:
                     fileChunk.write(newChunk)
 
-                
-                chosenID = random.choice(list(self.connectedPeers))
-                while chosenID in chosenPeersIDs:
-                    chosenID = random.choice(list(self.connectedPeers))
-                chosenPeersIDs.append(chosenID)
              
-                self.sendCunkToVolunteer(int(self.connectedPeers[chosenID].portNo), fileName) 
+                for i in range(2):
+                    chosenIDs = []
+                    chosenID = random.choice(list(self.connectedPeers))
+
+                    while chosenPeersIDs[chosenID] == 2 and chosenID not in chosenIDs: #we set it to two so two peers could have a copy of the same file
+                        chosenID = random.choice(list(self.connectedPeers))
+
+                    chosenPeersIDs[chosenID] +=1
+                    chosenIDs.append(chosenID)
+                    self.sendCunkToVolunteer(int(self.connectedPeers[chosenID].portNo), fileName) 
+               
+             
+               
                 
                 manifestFile.addChunkDetails(chunkNO , "127.0.0.1" , self.connectedPeers[chosenID].portNo)
                 os.remove(f"DividedFiles/{fileName}")
@@ -109,7 +120,7 @@ class Tracker(Server):
         
 	        
 
-  
+    
 
 
     def deleteFile(self , fileName):

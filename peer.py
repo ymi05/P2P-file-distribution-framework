@@ -175,12 +175,12 @@ class Peer(Server):
     
 
 
-def Main():
-    peer = Peer("Adam" , portNumber=5003)
-    # peer.start()
-    peer.start()
+# def Main():
+#     peer = Peer("Youssef" , portNumber=5003)
+#     # peer.start()
+#     peer.start()
     
 
 
-if __name__ == "__main__":
-    Main()
+# if __name__ == "__main__":
+#     Main()
