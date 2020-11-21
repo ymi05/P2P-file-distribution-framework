@@ -3,6 +3,7 @@ import os , time
 from server import Server
 from jsonFileHandler import getDataAndRequestChunks
 from md5_handler import *
+from datetime import datetime
 
 
 class Peer(Server):
@@ -15,7 +16,7 @@ class Peer(Server):
         self.__peerID__ = None
         self.newPeer = True
         self.newConnectionsHandler = self.handleConnection
-        self.extraOperationsHandler = self.connect
+        self.extraOperations = [self.connect , self.sendBeats]
 
     def handleConnection(self , name , connection):
         request = connection.recv(1024)
@@ -158,7 +159,13 @@ class Peer(Server):
             os.remove(f'./Peers/{self.__peerName__}/Downloads/{file}')
       
   
-
+    def sendBeats(self):
+        self.UDP_socket =  socket(AF_INET, SOCK_DGRAM)
+        addr = ("127.0.0.1", 5500)
+        dateTimeObj = datetime.now()
+        timeStamp = f"{dateTimeObj.year}/{dateTimeObj.month}/{dateTimeObj.day}_{dateTimeObj.hour}:{dateTimeObj.minute}:{dateTimeObj.second}"
+        message = f'PING|{self.__listeningPortNumber__}|{timeStamp}'.encode()
+        self.UDP_socket.sendto(message, addr)
     
     @property
     def id(self):  # use this to directly return a property instead of creating a getter function
@@ -175,12 +182,12 @@ class Peer(Server):
     
 
 
-# def Main():
-#     peer = Peer("Youssef" , portNumber=5003)
-#     # peer.start()
-#     peer.start()
+def Main():
+    peer = Peer("Adam" , portNumber=5004)
+    # peer.start()
+    peer.start()
     
 
 
-# if __name__ == "__main__":
-#     Main()
+if __name__ == "__main__":
+    Main()

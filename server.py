@@ -12,8 +12,9 @@ class Server:
         self.tempSocket = None
         # each server can handle \ connections differently, so we assign the function based on the class
         self.newConnectionsHandler = None
-        self.extraOperationsHandler = None
+        self.extraOperations = []
         self.isTracker = isTracker
+        self.UDP_socket = None
     
 
     def startListening(self, host="127.0.0.1"):
@@ -40,9 +41,10 @@ class Server:
         self.listeningSocket.close()
 
     def start(self):
-        if self.extraOperationsHandler != None:
-            operationsThread = threading.Thread(target=self.extraOperationsHandler)       
-            operationsThread.start()
+        if len(self.extraOperations) > 1 :
+            for opertaion in self.extraOperations:
+                operationsThread = threading.Thread(target=opertaion)       
+                operationsThread.start()
         time.sleep(4)
         runServerThread = threading.Thread(target=self.runServer)       
         runServerThread.start()

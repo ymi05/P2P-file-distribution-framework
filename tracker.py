@@ -1,7 +1,10 @@
 from server import Server
 from peer import Peer
 from manifest import ManifestFile
-import math , os , random , time 
+from datetime import datetime
+import math , os , random , time , threading
+import threading
+from socket import *
 
 class Tracker(Server):
 
@@ -10,9 +13,11 @@ class Tracker(Server):
         super().__init__(5000 , isTracker= True)
 
         self.connectedPeers = {}
+        self.beats_status = {}
         self.newConnectionsHandler = self.handlePeerArrival
-        self.extraOperationsHandler = self.checkForNewFiles
+        self.extraOperations = [self.checkForNewFiles , self.handleUDPBeats]
         self.fileLimit = 3
+ 
 
     def handlePeerArrival(self, name, connection):
         request = connection.recv(1024)
@@ -155,16 +160,52 @@ class Tracker(Server):
         print(filePath)
         self.sendFile("" , connection , filePath)
 
+    
+
+    def handleUDPBeats(self):
+        self.UDP_socket = socket(AF_INET , SOCK_DGRAM)
+        self.UDP_socket.bind(('', 5500))
+        while True:
+            try:
+                checkerThread = threading.Thread(target=self.checkPeerStatus) 
+                checkerThread.start()
+                listeningThread = threading.Thread(target=self.listenToBeats) 
+                
+                listeningThread.start()
+                time.sleep(2)
+            
+            except :
+                print("Cannot listen to beats anymore")
+                break
+        self.UDP_socket.close()
+    
+    def updatePeerStatus(self , address , portNo,  timeStamp):
+        self.beats_status[portNo] = timeStamp
+
+    def listenToBeats(self):
+        message, address = self.UDP_socket.recvfrom(1024)    
+        print(f"UDP Beat from < {address} >")
+        messageContent = message.decode().split("|")
+        timeStamp = messageContent[2]
+        portNo = messageContent[1]
+        self.updatePeerStatus( address , portNo,  timeStamp)
+
+    def checkPeerStatus(self):
+        if len(self.beats_status) > 0:
+            dateTimeObj = datetime.now()
+            current_Statuses = self.beats_status.copy() #the dict size might change while looping so this will cause an error
+            for port in current_Statuses:
+                lastRecieved_hour = int(current_Statuses[port].split("_")[1].split(":")[0])
+                lastRecieved_minute =  int(current_Statuses[port].split("_")[1].split(":")[1])
+                lastRecieved_second = int(current_Statuses[port].split("_")[1].split(":")[2])
+
+                if  (int(dateTimeObj.minute) > lastRecieved_minute or lastRecieved_second + 30 <= int(dateTimeObj.second)) and int(dateTimeObj.hour) >= lastRecieved_hour:
+                    print(f"Connection with port {port} is dead")
+                    self.beats_status.pop(port)
 
 def Main():
     server = Tracker()
     server.start()
-    # trackerObj = Tracker()
-    # # trackerObj.deleteFile("app.txt")
-    # fileList = os.listdir('./random_files')
-    # for file in fileList:
-    #     trackerObj.addFile(f"./random_files/{file}")
-
 
 if __name__ == "__main__":
     Main()
