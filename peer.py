@@ -160,13 +160,15 @@ class Peer(Server):
       
   
     def sendBeats(self):
-        self.UDP_socket =  socket(AF_INET, SOCK_DGRAM)
-        addr = ("127.0.0.1", 5500)
-        dateTimeObj = datetime.now()
-        timeStamp = f"{dateTimeObj.year}/{dateTimeObj.month}/{dateTimeObj.day}_{dateTimeObj.hour}:{dateTimeObj.minute}:{dateTimeObj.second}"
-        message = f'PING|{self.__listeningPortNumber__}|{timeStamp}'.encode()
-        self.UDP_socket.sendto(message, addr)
-    
+        addr = ("127.0.0.1", 5500) #target tracker
+        while True:
+            self.UDP_socket =  socket(AF_INET, SOCK_DGRAM)
+            dateTimeObj = datetime.now()
+            timeStamp = f"{dateTimeObj.year}/{dateTimeObj.month}/{dateTimeObj.day}_{dateTimeObj.hour}:{dateTimeObj.minute}:{dateTimeObj.second}"
+            message = f'PING|{self.__listeningPortNumber__}|{timeStamp}'.encode()
+            self.UDP_socket.sendto(message, addr)
+            time.sleep(10) #send a beat/ping every 10 seconds
+        
     @property
     def id(self):  # use this to directly return a property instead of creating a getter function
         return self.__peerID__

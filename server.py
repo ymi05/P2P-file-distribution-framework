@@ -12,7 +12,7 @@ class Server:
         self.tempSocket = None
         # each server can handle \ connections differently, so we assign the function based on the class
         self.newConnectionsHandler = None
-        self.extraOperations = []
+        self.extraOperations = [] #each child might have 0 or more extra and different operations
         self.isTracker = isTracker
         self.UDP_socket = None
     
@@ -41,7 +41,7 @@ class Server:
         self.listeningSocket.close()
 
     def start(self):
-        if len(self.extraOperations) > 1 :
+        if len(self.extraOperations) > 1 : #we run the opertaitions each child has 
             for opertaion in self.extraOperations:
                 operationsThread = threading.Thread(target=opertaion)       
                 operationsThread.start()

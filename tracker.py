@@ -164,15 +164,15 @@ class Tracker(Server):
 
     def handleUDPBeats(self):
         self.UDP_socket = socket(AF_INET , SOCK_DGRAM)
-        self.UDP_socket.bind(('', 5500))
+        self.UDP_socket.bind(('', 5500)) #create a seperate socket with a different port to listen to the UPD heartbeats
         while True:
             try:
-                checkerThread = threading.Thread(target=self.checkPeerStatus) 
+                checkerThread = threading.Thread(target=self.checkPeerStatus)  #
                 checkerThread.start()
                 listeningThread = threading.Thread(target=self.listenToBeats) 
                 
                 listeningThread.start()
-                time.sleep(2)
+                time.sleep(2) 
             
             except :
                 print("Cannot listen to beats anymore")
@@ -180,7 +180,7 @@ class Tracker(Server):
         self.UDP_socket.close()
     
     def updatePeerStatus(self , address , portNo,  timeStamp):
-        self.beats_status[portNo] = timeStamp
+        self.beats_status[portNo] = timeStamp #we keep track of the peers by saving their ports along with the timestamp of the last beat
 
     def listenToBeats(self):
         message, address = self.UDP_socket.recvfrom(1024)    
@@ -191,17 +191,18 @@ class Tracker(Server):
         self.updatePeerStatus( address , portNo,  timeStamp)
 
     def checkPeerStatus(self):
-        if len(self.beats_status) > 0:
+        if len(self.beats_status) > 0: #no need to check if we have nothing stored
             dateTimeObj = datetime.now()
             current_Statuses = self.beats_status.copy() #the dict size might change while looping so this will cause an error
             for port in current_Statuses:
                 lastRecieved_hour = int(current_Statuses[port].split("_")[1].split(":")[0])
                 lastRecieved_minute =  int(current_Statuses[port].split("_")[1].split(":")[1])
                 lastRecieved_second = int(current_Statuses[port].split("_")[1].split(":")[2])
+                timeLimit_seconds = 30
 
-                if  (int(dateTimeObj.minute) > lastRecieved_minute or lastRecieved_second + 30 <= int(dateTimeObj.second)) and int(dateTimeObj.hour) >= lastRecieved_hour:
-                    print(f"Connection with port {port} is dead")
-                    self.beats_status.pop(port)
+                if  (int(dateTimeObj.minute) > lastRecieved_minute or lastRecieved_second + timeLimit_seconds <= int(dateTimeObj.second)) and int(dateTimeObj.hour) >= lastRecieved_hour:
+                    print(f"No more beats from port: {port}")
+                    self.beats_status.pop(port) #if there are no beats for the specific port, then remove it from the dict
 
 def Main():
     server = Tracker()
