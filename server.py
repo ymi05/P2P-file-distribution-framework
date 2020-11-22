@@ -10,7 +10,7 @@ class Server:
         self.__listeningPortNumber__ = portNumber
         self.listeningSocket = None
         self.tempSocket = None
-        # each server can handle \ connections differently, so we assign the function based on the class
+        # each server can handle connections differently, so we assign the function based on the class
         self.newConnectionsHandler = None
         self.extraOperations = [] #each child might have 0 or more extra and different operations
         self.isTracker = isTracker

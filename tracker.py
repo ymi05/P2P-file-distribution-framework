@@ -2,6 +2,7 @@ from server import Server
 from peer import Peer
 from manifest import ManifestFile
 from datetime import datetime
+from timeChecker import timeLimitExceeded
 import math , os , random , time , threading
 import threading
 from socket import *
@@ -102,21 +103,21 @@ class Tracker(Server):
                     fileChunk.write(newChunk)
 
              
+                chosenIDs = []
                 for i in range(2):
-                    chosenIDs = []
                     chosenID = random.choice(list(self.connectedPeers))
 
-                    while chosenPeersIDs[chosenID] == 2 and chosenID not in chosenIDs: #we set it to two so two peers could have a copy of the same file
+                    while chosenPeersIDs[chosenID] != 2 and chosenID in chosenIDs: #we set it to two so two peers could have a copy of the same file
                         chosenID = random.choice(list(self.connectedPeers))
 
                     chosenPeersIDs[chosenID] +=1
                     chosenIDs.append(chosenID)
                     self.sendCunkToVolunteer(int(self.connectedPeers[chosenID].portNo), fileName) 
+                    manifestFile.addChunkDetails(chunkNO , "127.0.0.1" , self.connectedPeers[chosenID].portNo)
                
              
                
-                
-                manifestFile.addChunkDetails(chunkNO , "127.0.0.1" , self.connectedPeers[chosenID].portNo)
+                # manifestFile.addChunkDetails(chunkNO , "127.0.0.1" , self.connectedPeers[chosenID].portNo)
                 os.remove(f"DividedFiles/{fileName}")
 
                 chunkNO += 1
@@ -184,23 +185,23 @@ class Tracker(Server):
 
     def listenToBeats(self):
         message, address = self.UDP_socket.recvfrom(1024)    
-        print(f"UDP Beat from < {address} >")
         messageContent = message.decode().split("|")
         timeStamp = messageContent[2]
         portNo = messageContent[1]
+        print(f"UDP Beat from < port: {portNo} >")
+     
         self.updatePeerStatus( address , portNo,  timeStamp)
 
     def checkPeerStatus(self):
         if len(self.beats_status) > 0: #no need to check if we have nothing stored
             dateTimeObj = datetime.now()
             current_Statuses = self.beats_status.copy() #the dict size might change while looping so this will cause an error
+            timeLimit_seconds = 30 #if we do not receive a beat within 30 seconds, tracker will remove the peer
             for port in current_Statuses:
-                lastRecieved_hour = int(current_Statuses[port].split("_")[1].split(":")[0])
-                lastRecieved_minute =  int(current_Statuses[port].split("_")[1].split(":")[1])
-                lastRecieved_second = int(current_Statuses[port].split("_")[1].split(":")[2])
-                timeLimit_seconds = 30
+                timeStamp = current_Statuses[port].split("_")[1]
 
-                if  (int(dateTimeObj.minute) > lastRecieved_minute or lastRecieved_second + timeLimit_seconds <= int(dateTimeObj.second)) and int(dateTimeObj.hour) >= lastRecieved_hour:
+
+                if timeLimitExceeded( timeStamp , dateTimeObj , port):
                     print(f"No more beats from port: {port}")
                     self.beats_status.pop(port) #if there are no beats for the specific port, then remove it from the dict
 
