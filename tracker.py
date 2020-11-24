@@ -16,7 +16,7 @@ class Tracker(Server):
         self.connectedPeers = {}
         self.beats_status = {}
         self.newConnectionsHandler = self.handlePeerArrival
-        self.extraOperations = [self.checkForNewFiles , self.handleUDPBeats]
+        self.extraOperations = [self.checkForNewFiles , self.monitorUDPBeats]
         self.fileLimit = 3
  
 
@@ -72,21 +72,24 @@ class Tracker(Server):
     
   
     def divideFileToChunks(self, fileName, numberOfChunks = 1):
-     
-        # self.connectedPeers = {"1":Peer("Youssef" , portNumber=5003) , "2":Peer("Adam" , portNumber=5002)} #hardcoded values
         
-        manifestFile = ManifestFile(f"Server_files/{fileName}")
+        manifestFile = ManifestFile(fileName)
         manifestFile.prepareManifestFile(numberOfChunks)
 
-        if len(self.connectedPeers) < numberOfChunks:
-            numberOfChunks = len(self.connectedPeers)
+        if len(self.beats_status) < numberOfChunks:
+            numberOfChunks = len(self.beats_status)
         #the division could lead to a float , but the file can read # bytes that are integers.
         CHUNK_SIZE = math.ceil(os.path.getsize(
             f"Server_files/{fileName}") / numberOfChunks)     # We take the cieling of the divison result and not the floor to avoid losing data
-
+        
         chunkNO = 1
+        choshenReciver = None #we pick a certain receiver at certain points:
+        #EXPLANATION:
+        #in cases like 3 peers, if the first two chunks and their respective copies were sent to the same peers
+        #the last peer will only be able to get only one chunk and this chunk will not have a copy at one of the peers
+
         with open(f"Server_files/{fileName}", "rb") as chosenFile:
-            chosenPeersIDs = { id : 0 for id in self.connectedPeers} #used to keep track of the selected peers to avoid sending to the same peer more than once
+            chosenPeersIDs = { id : 0 for id in self.beats_status} #used to keep track of the selected peers to avoid sending to the same peer more than once
             newFileName = fileName.split('.')[0]
             while (newChunk:= chosenFile.read(CHUNK_SIZE)) != b'': #if what we read is not empty then we assign what was read to newChunk
                 if chunkNO > numberOfChunks: #in case things go bad
@@ -105,19 +108,23 @@ class Tracker(Server):
              
                 chosenIDs = []
                 for i in range(2):
-                    chosenID = random.choice(list(self.connectedPeers))
+                    chosenPort = random.choice(list(self.beats_status))
+                    if(len(chosenPeersIDs) != 1 or choshenReciver != None ):
+                        while chosenPeersIDs[chosenPort] == 2 or chosenPort in chosenIDs or chosenPort == choshenReciver: #we set it to two so two peers could have a copy of the same file
+                            chosenPort = random.choice(list(self.beats_status))
+                    if(chunkNO % 2 != 0): #take one of the chosen peers, wait for the next new chunk to be sent
+                        choshenReciver = chosenPort
+                    elif(chunkNO % 2 == 0): # when we skip a chunk, we use the port and send the next chunk to it
+                        choshenReciver = None
+                    chosenPeersIDs[chosenPort] +=1
+                    chosenIDs.append(chosenPort)
 
-                    while chosenPeersIDs[chosenID] != 2 and chosenID in chosenIDs: #we set it to two so two peers could have a copy of the same file
-                        chosenID = random.choice(list(self.connectedPeers))
-
-                    chosenPeersIDs[chosenID] +=1
-                    chosenIDs.append(chosenID)
-                    self.sendCunkToVolunteer(int(self.connectedPeers[chosenID].portNo), fileName) 
-                    manifestFile.addChunkDetails(chunkNO , "127.0.0.1" , self.connectedPeers[chosenID].portNo)
+                    self.sendCunkToVolunteer(int(chosenPort), fileName) 
+                    manifestFile.addChunkDetails(chunkNO , "127.0.0.1" , int(chosenPort))
                
              
                
-                # manifestFile.addChunkDetails(chunkNO , "127.0.0.1" , self.connectedPeers[chosenID].portNo)
+                # manifestFile.addChunkDetails(chunkNO , "127.0.0.1" , self.connectedPeers[chosenPort].portNo)
                 os.remove(f"DividedFiles/{fileName}")
 
                 chunkNO += 1
@@ -132,13 +139,13 @@ class Tracker(Server):
     def deleteFile(self , fileName):
         filePath = f"Server_files/{fileName}"
         if os.path.exists(filePath):
-            self.divideFileToChunks(fileName , len(self.connectedPeers))
+            self.divideFileToChunks(fileName , len(self.beats_status))
             os.remove(filePath)
     
    
     def checkForNewFiles(self):
         while True:
-            if len(self.connectedPeers) > 0:
+            if len(self.beats_status) > 0:
                 fileList = os.listdir('./Server_files')
                 if(len(fileList) > self.fileLimit):
                     self.deleteFile(random.choice(fileList))
@@ -163,7 +170,7 @@ class Tracker(Server):
 
     
 
-    def handleUDPBeats(self):
+    def monitorUDPBeats(self):
         self.UDP_socket = socket(AF_INET , SOCK_DGRAM)
         self.UDP_socket.bind(('', 5500)) #create a seperate socket with a different port to listen to the UPD heartbeats
         while True:
@@ -203,7 +210,11 @@ class Tracker(Server):
 
                 if timeLimitExceeded( timeStamp , dateTimeObj , port):
                     print(f"No more beats from port: {port}")
+                    self.handlePeerChurn(port)
                     self.beats_status.pop(port) #if there are no beats for the specific port, then remove it from the dict
+
+    def handlePeerChurn(self , portNo):
+        pass
 
 def Main():
     server = Tracker()

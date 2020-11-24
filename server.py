@@ -15,7 +15,10 @@ class Server:
         self.extraOperations = [] #each child might have 0 or more extra and different operations
         self.isTracker = isTracker
         self.UDP_socket = None
-    
+        dir = f"Server_files"
+        if not os.path.exists(dir):
+            os.makedirs(f"./{dir}")
+
 
     def startListening(self, host="127.0.0.1"):
         self.listeningSocket = socket(AF_INET, SOCK_STREAM)

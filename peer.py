@@ -167,7 +167,7 @@ class Peer(Server):
             timeStamp = f"{dateTimeObj.year}/{dateTimeObj.month}/{dateTimeObj.day}_{dateTimeObj.hour}:{dateTimeObj.minute}:{dateTimeObj.second}"
             message = f'PING|{self.__listeningPortNumber__}|{timeStamp}'.encode()
             self.UDP_socket.sendto(message, addr)
-            time.sleep(10) #send a beat/ping every 10 seconds
+            time.sleep(15) #send a beat/ping every 15 seconds
         
     @property
     def id(self):  # use this to directly return a property instead of creating a getter function
@@ -185,8 +185,7 @@ class Peer(Server):
 
 
 def Main():
-    peer = Peer("Adam" , portNumber=5004)
-    # peer.start()
+    peer = Peer("nassar" , portNumber=5007)
     peer.start()
     
 

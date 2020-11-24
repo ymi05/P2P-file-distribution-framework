@@ -3,7 +3,7 @@ from peer import Peer
 
 def Main():
     name = input("Enter your name please: ")
-    newPeer = Peer(name, portNumber= 5004,allowConnection=True)
+    newPeer = Peer(name, portNumber= 5030,allowConnection=True)
 
     newPeer.connect(justGetID= False)
     print("You are now connected to the server!")

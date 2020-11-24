@@ -1,20 +1,28 @@
-
-from datetime import datetime
-
-def timeLimitExceeded(timeStamp , currentTime: datetime):
-    lastRecieved_hour = int(timeStamp.split(":")[0]) * 120
-    lastRecieved_minute =  int(timeStamp.split(":")[1]) * 60
-    lastRecieved_second = int(timeStamp.split(":")[2])
-
-    currentHr = int(currentTime.hour)
-    currentMin = int(currentTime.minute)
-    currentSec = int(currentTime.second)
-
-    prevTime_inSeconds = lastRecieved_hour + lastRecieved_minute + lastRecieved_second
-    currentTime_inSeconds = currentHr + currentMin + currentSec
-    difference = abs(prevTime_inSeconds - currentTime_inSeconds)
-    print(difference)
-    return True if difference >= 30 else False
+import json 
 
 
-print(timeLimitExceeded("3:0:0" , datetime.now()))
+
+numberOfChunks = 0
+md5Checksum = ""
+
+
+with open(f'Manifests/HW6.' ,) as manifestFile:
+    
+  fileData = json.load(manifestFile)
+
+numberOfChunks = fileData["numChunks"]
+md5Checksum = fileData["md5Checksum"]
+
+chosenFiles = []
+for chunk in fileData["chunks"]:
+    values = chunk.values()
+    value_iterator = iter(values)
+    values = next(value_iterator)
+    
+
+    if (fileName:= values["name"]) not in chosenFiles: #since the manifest contains info for copies of the same chunk, we want to avoid unecessary requests
+        chosenFiles.append(fileName)
+        IP_Address = values["IP_Address"]
+        port = int(values["port"])
+        requestChunks(fileName , port)
+        
