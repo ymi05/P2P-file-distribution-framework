@@ -52,21 +52,25 @@ class Tracker(Server):
    
 
     def sendCunkToVolunteer(self, portNo, fileName):
-
-        self.tempSocket = self.establishTCPConnection(portNo)
-        if self.tempSocket != None:
-            time.sleep(3)
-            self.tempSocket.send(f"SAVE|{os.path.getsize(f'./DividedFiles/{fileName}')}|{fileName}".encode())
-            peerResponse = self.tempSocket.recv(1024).decode()
-            if peerResponse[:2] == "OK":
-                with open(f"DividedFiles/{fileName}", "rb") as fileChunk:
-                    bytesToSend = fileChunk.read(1024)
-                    self.tempSocket.send(bytesToSend)
-                    while bytesToSend != b'':  
+        try: #if the socket is busy
+            self.tempSocket = self.establishTCPConnection(portNo)
+            tempSock = self.tempSocket
+        except: #we create a new one
+            tempSock = self.establishTCPConnection(portNo)
+        finally:
+            if tempSock!= None:
+                time.sleep(3)
+                tempSock.send(f"SAVE|{os.path.getsize(f'./DividedFiles/{fileName}')}|{fileName}".encode())
+                peerResponse = tempSock.recv(1024).decode()
+                if peerResponse[:2] == "OK":
+                    with open(f"DividedFiles/{fileName}", "rb") as fileChunk:
                         bytesToSend = fileChunk.read(1024)
-                        self.tempSocket.send(bytesToSend)
+                        tempSock.send(bytesToSend)
+                        while bytesToSend != b'':  
+                            bytesToSend = fileChunk.read(1024)
+                            tempSock.send(bytesToSend)
 
-            self.tempSocket.close()
+                tempSock.close()
 
 
     
@@ -218,11 +222,9 @@ class Tracker(Server):
 
     def sendFileToNewPeer(self , * ,sourcePortNo , destinationPortNo , chunkFileName):
         self.tempSocket = self.establishTCPConnection(sourcePortNo)
-        self.tempSocket.send(f"GET|{destinationPortNo}|{chunkFileName}".encode())
+        self.tempSocket.send(f"GET|{destinationPortNo}|{chunkFileName}".encode()) 
 
         peerResponse = self.tempSocket.recv(1024).decode()
-        
-        
         self.tempSocket.close()
 
     def handlePeerChurn(self , portNo):

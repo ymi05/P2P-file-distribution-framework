@@ -30,19 +30,24 @@ class Peer(Server):
             self.connectedPeers[peerID] = Peer(str(information[0]),
                                                portNumber=int(information[1]))
 
-        elif(request[:4] == "SAVE"):  # REQ command is for requesting a file
+        elif(request[:4] == "SAVE"):  # REQ command is to save a chunk
             information = request.split("|")
             fileSize = int(information[1])
             fileName = information[2]
             self.saveChunk(fileName,fileSize , connection)
-        elif(request [:3] == "REQ"):
+        elif(request [:3] == "REQ"): #this command is to request a chunk from a peer
             requestedFile = request[4:]
             self.sendFile(name , connection , f"Peers/{self.__peerName__}/Chunks/{requestedFile}")
-            os.remove(f"Peers/{self.__peerName__}/Chunks/{requestedFile}")
-        elif(request[:3] == "GET"):
-            requestDetails = request.split("_")
-            portNo = requestDetails[1]
+            # os.remove(f"Peers/{self.__peerName__}/Chunks/{requestedFile}")
+            
+        elif(request[:3] == "GET"): #command for sending the chunk to another peer
+            requestDetails = request.split("|")
+            portNo = int(requestDetails[1])
             fileChunkName = requestDetails[2]
+            connection.close()
+            connection = self.establishTCPConnection(portNo)
+            self.sendFile(name , connection , f"Peers/{self.__peerName__}/Chunks/{fileChunkName}" , "SAVE")
+
 
     def getIDFromServer(self):
         # get the port number of the socket and assign it to this peer
@@ -73,7 +78,7 @@ class Peer(Server):
 
             if data[:6] == "EXISTS":  # server tells us if the file exists and sedns the size
                 isManifestFile = False
-                information = data.split("--")
+                information = data.split("|")
                 filesize = int(information[1])
                 requestedFileName = fileName
                 recievedFileName = information[2].split("/")[-1]
@@ -142,6 +147,7 @@ class Peer(Server):
                 totalReceived += len(data)
                 newChunk.write(data) 
 
+
     def requestChunks(self, manifestFileName , port):
         self.connect(port = port , justGetID = False)
         self.requestFile(manifestFileName , requestFromPeer= True)
@@ -189,7 +195,7 @@ class Peer(Server):
 
 
 def Main():
-    peer = Peer("nassar" , portNumber=5005)
+    peer = Peer("Nassar" , portNumber=5007)
     peer.start()
     
 

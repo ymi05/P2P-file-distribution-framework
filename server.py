@@ -23,7 +23,7 @@ class Server:
     def startListening(self, host="127.0.0.1"):
         self.listeningSocket = socket(AF_INET, SOCK_STREAM)
         self.listeningSocket.bind((host, self.__portNumber__))
-        self.listeningSocket.listen(5)
+        self.listeningSocket.listen(6)
 
     def runServer(self):
         self.startListening()
@@ -53,11 +53,11 @@ class Server:
         runServerThread.start()
     
 
-    def sendFile(self, name, connection, filePath):
+    def sendFile(self, name, connection, filePath , typeOfReq = "EXISTS"):
         # if Server.fileExists(filePath):
-
+            fileName = filePath.split("/")[-1]
             connection.send(
-                f"EXISTS--{os.path.getsize(f'{filePath}')}--{filePath}".encode())
+                f"{typeOfReq}|{os.path.getsize(f'{filePath}')}|{fileName}".encode())
          
             userResponse = connection.recv(1024).decode()
             if userResponse[:2] == "OK":
