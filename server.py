@@ -79,7 +79,7 @@ class Server:
             time.sleep(2)
             return newSocket
         except:
-            print("ERROR")
+            print(f"ERR: Cannot connect to <{IPAddress}, {port}>")
             return None
         
         

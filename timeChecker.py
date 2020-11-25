@@ -2,7 +2,7 @@
 from datetime import datetime
 
 def timeLimitExceeded(timeStamp , currentTime: datetime , portNo):
-    timeLimit = 30
+    timeLimit = 20
 
     lastRecieved_hour = int(timeStamp.split(":")[0]) * 120
     lastRecieved_minute =  int(timeStamp.split(":")[1]) * 60

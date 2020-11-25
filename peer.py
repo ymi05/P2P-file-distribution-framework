@@ -39,6 +39,10 @@ class Peer(Server):
             requestedFile = request[4:]
             self.sendFile(name , connection , f"Peers/{self.__peerName__}/Chunks/{requestedFile}")
             os.remove(f"Peers/{self.__peerName__}/Chunks/{requestedFile}")
+        elif(request[:3] == "GET"):
+            requestDetails = request.split("_")
+            portNo = requestDetails[1]
+            fileChunkName = requestDetails[2]
 
     def getIDFromServer(self):
         # get the port number of the socket and assign it to this peer
@@ -185,7 +189,7 @@ class Peer(Server):
 
 
 def Main():
-    peer = Peer("nassar" , portNumber=5007)
+    peer = Peer("nassar" , portNumber=5005)
     peer.start()
     
 
