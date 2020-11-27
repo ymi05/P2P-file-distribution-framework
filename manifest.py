@@ -59,6 +59,7 @@ class ManifestFile:
  
 
             for chunkInfo in portNoChunks:
+                #saves the filenames that exist at the churned peer as keys
                 fileName_Source[chunkInfo["name"]] = 0
                 fileName_Destination[chunkInfo["name"]] = 0
 
@@ -76,6 +77,7 @@ class ManifestFile:
                                 hasFile = True 
                                 fileName_Source[fileName] = int(portNo)
                                 dataToBeAdded[int(portNo)] = []
+                                break
 
 
                         if not hasFile:

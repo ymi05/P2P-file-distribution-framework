@@ -118,11 +118,11 @@ class Tracker(Server):
                         while chosenPeersIDs[chosenPort] == 2 or chosenPort in chosenIDs or chosenPort == choshenReciver: #we set it to two so two peers could have a copy of the same file
                             chosenPort = random.choice(list(self.beats_status))
                             
-                    if(chunkNO % 2 != 0): #take one of the chosen peers, wait for the next new chunk to be sent
+                    if(chunkNO % 2 != 0 and choshenReciver == None): #take one of the chosen peers, wait for the next new chunk to be sent
                         choshenReciver = chosenPort
                     elif(chunkNO % 2 == 0): # when we skip a chunk, we use the port and send the next chunk to it
                         choshenReciver = None
-                    chosenPeersIDs[chosenPort] +=1
+                    chosenPeersIDs[chosenPort] += 1
                     chosenIDs.append(chosenPort)
 
                     self.sendCunkToVolunteer(int(chosenPort), fileName) 
@@ -209,23 +209,29 @@ class Tracker(Server):
         if len(self.beats_status) > 0: #no need to check if we have nothing stored
             dateTimeObj = datetime.now()
             current_Statuses = self.beats_status.copy() #the dict size might change while looping so this will cause an error
-            timeLimit_seconds = 30 #if we do not receive a beat within 30 seconds, tracker will remove the peer
 
             for port in current_Statuses:
                 timeStamp = current_Statuses[port].split("_")[1]
-
-
-                if timeLimitExceeded( timeStamp , dateTimeObj , port):
-                    print(f"No more beats from port: {port}")
-                    self.handlePeerChurn(port)
-                    self.beats_status.pop(port) #if there are no beats for the specific port, then remove it from the dict
+                if port in self.beats_status.keys():
+                    if timeLimitExceeded( timeStamp , dateTimeObj , port):
+                        print(f"No more beats from port: {port}")
+                        self.handlePeerChurn(port)
+                        try:
+                            self.beats_status.pop(port) #if there are no beats for the specific port, then remove it from the dict
+                        except KeyError: 
+                            pass
 
     def sendFileToNewPeer(self , * ,sourcePortNo , destinationPortNo , chunkFileName):
-        self.tempSocket = self.establishTCPConnection(sourcePortNo)
-        self.tempSocket.send(f"GET|{destinationPortNo}|{chunkFileName}".encode()) 
+        try: #if the socket is busy
+            self.tempSocket = self.establishTCPConnection(sourcePortNo)
+            tempSock = self.tempSocket
+        except: #we create a new one
+            tempSock = self.establishTCPConnection(sourcePortNo)
+        finally:
+            tempSock.send(f"GET|{destinationPortNo}|{chunkFileName}".encode()) 
 
-        peerResponse = self.tempSocket.recv(1024).decode()
-        self.tempSocket.close()
+            # peerResponse = self.tempSocket.recv(1024).decode()
+            tempSock.close()
 
     def handlePeerChurn(self , portNo):
         manifestFiles = os.listdir('./Manifests')

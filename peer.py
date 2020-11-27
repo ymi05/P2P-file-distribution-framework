@@ -7,7 +7,7 @@ from datetime import datetime
 
 
 class Peer(Server):
-    def __init__(self, name, *, portNumber=5001, allowConnection=False):
+    def __init__(self, name, *, portNumber=5005, allowConnection=False):
         super().__init__(portNumber)
        
         self.__peerName__ = name
@@ -194,11 +194,11 @@ class Peer(Server):
     
 
 
-def Main():
-    peer = Peer("Nassar" , portNumber=5007)
-    peer.start()
+# def Main():
+#     peer = Peer("3" , portNumber=5003)
+#     peer.start()
     
 
 
-if __name__ == "__main__":
-    Main()
+# if __name__ == "__main__":
+#     Main()
