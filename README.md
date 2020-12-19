@@ -28,5 +28,3 @@ python app.py
 - [Adam Helal](https://github.com/AdamHelal)
 - [Youssef Itani](https://github.com/ymi05)
 
-## License
-[MIT](https://choosealicense.com/licenses/mit/)
